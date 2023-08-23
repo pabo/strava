@@ -14,12 +14,16 @@ const ACCESS_TOKEN_COOKIE_NAME = 'access_token';
 const API_BASE_URI = 'https://www.strava.com/api/v3';
 
 console.log("client id is", CLIENT_ID)
-var privateKey = fs.readFileSync(__dirname + '/../../certs/RSA-privkey.pem', 'utf8');
-var certificate = fs.readFileSync(__dirname + '/../../certs/RSA-cert.pem', 'utf8');
-var credentials = { key: privateKey, cert: certificate };
 
-const server = https.createServer({ ...credentials, }, app).listen(4043)
+const privateKey = fs.readFileSync(__dirname + '/../../certs/RSA-privkey.pem', 'utf8');
+const certificate = fs.readFileSync(__dirname + '/../../certs/RSA-cert.pem', 'utf8');
+const credentials = { key: privateKey, cert: certificate };
+
+// TODO: can I reference / fallback to the vite.config.ts?
+const server = https.createServer({ ...credentials, }, app).listen(HTTPS_PORT)
 ViteExpress.bind(app, server);
+
+app.use(cookieParser())
 
 // cookies
 // app.use(cookieParser())
@@ -58,13 +62,35 @@ app.put('/update_activity_name', function (req, res) {
     }
 });
 
+app.get('/activities/:id', function (req, res) {
+    const accessToken = req?.cookies?.[ACCESS_TOKEN_COOKIE_NAME];
+
+    if (!accessToken) {
+        res.sendStatus(401);
+        return;
+    }
+
+    axios.request({
+        method: 'get',
+        url: `${API_BASE_URI}/activities/${req.params.id}`,
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        }
+    }).then(response => {
+        res.json(response.data);
+    });
+});
+
+
 app.get('/last_activities', function (req, res) {
     const accessToken = req?.cookies?.[ACCESS_TOKEN_COOKIE_NAME];
 
     if (!accessToken) {
-        res.send(401);
+        res.sendStatus(401);
+        return;
     }
-    const HOURS_TO_LOOK_BACK = 72;
+
+    const HOURS_TO_LOOK_BACK = 500;
 
     const lastActivities = (Date.now() - (HOURS_TO_LOOK_BACK * 1000 * 60 * 60)) / 1000;
 
@@ -75,13 +101,11 @@ app.get('/last_activities', function (req, res) {
             Authorization: `Bearer ${accessToken}`
         }
     }).then(activitiesResponse => {
-        // const activity = activitiesResponse.data[0];
-        // console.log(activity.id);
-        // console.log(activity.name);
-
         res.json(activitiesResponse.data);
     });
 });
+
+
 
 // https://pabonet.duckdns.org/oauth_callback?state=&code=dad0d4fb11f43c34c9366d1605a695b9ad90de1a&scope=read,activity:write
 app.get('/oauth_callback', function (req, res) {
