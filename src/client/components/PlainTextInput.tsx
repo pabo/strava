@@ -8,7 +8,6 @@ export const PlainTextInput: React.FC<{
   fieldName: keyof DetailedActivity;
   id: number;
 }> = ({ id, text, fieldName }) => {
-  console.log("rendering plain text input");
   const [isEditing, setIsEditing] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
 
