@@ -3,9 +3,13 @@ import { DetailedActivity, SummaryGear } from "../stravaApi/api";
 
 type GearProps = {
   selectedGearId?: string;
+  mutateActivityDetail: (activity: Partial<DetailedActivity>) => void;
 };
 
-export const GearList: React.FC<GearProps> = ({ selectedGearId }) => {
+export const GearList: React.FC<GearProps> = ({
+  selectedGearId,
+  mutateActivityDetail,
+}) => {
   const qc = useQueryClient();
 
   // we define a gearList query here. It's synchronous because it only looks at the cached
@@ -29,20 +33,32 @@ export const GearList: React.FC<GearProps> = ({ selectedGearId }) => {
     },
   });
 
+  const handleChange = (gear: SummaryGear) => {
+    // hoka g13654207
+    // NB g14341023
+
+    // TODO: strava generated api has fields like gearId, but the actual names that their API accepts are like gear_id
+    // need to figure out how to rectify that
+    mutateActivityDetail({ gear_id: gear.id });
+  };
+
   return (
     <div>
       {gearList &&
-        [...gearList.values()].map((gear) => (
-          <div key={gear.id}>
-            <input
-              type="radio"
-              value={gear.id}
-              title="hey"
-              checked={gear.id === selectedGearId}
-            />
-            <label>{gear.name}</label>
-          </div>
-        ))}
+        [...gearList.values()].map((gear) => {
+          return (
+            <div key={gear.id}>
+              <input
+                type="radio"
+                value={gear.id}
+                title="hey"
+                checked={gear.id === selectedGearId}
+                onChange={() => handleChange(gear)}
+              />
+              <label>{gear.name}</label>
+            </div>
+          );
+        })}
     </div>
   );
 };

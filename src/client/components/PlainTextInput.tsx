@@ -1,32 +1,13 @@
 import { useState } from "react";
-import { udpateActivity } from "../api";
 import { DetailedActivity } from "../stravaApi/api";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 export const PlainTextInput: React.FC<{
   text: string;
   fieldName: keyof DetailedActivity;
-  id: number;
-}> = ({ id, text, fieldName }) => {
+  mutateActivityDetail: (activity: Partial<DetailedActivity>) => void;
+}> = ({ text, fieldName, mutateActivityDetail }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [isDisabled, setIsDisabled] = useState(false);
-
-  // TODO: cant destructure this or it breaks?
-  const qc = useQueryClient();
-
-  const { mutate } = useMutation(
-    (activity: Partial<DetailedActivity>) => {
-      setIsDisabled(true);
-      return udpateActivity(activity);
-    },
-    {
-      onSuccess: (data) => {
-        qc.setQueryData(["activityDetail", id], data);
-        setIsDisabled(false);
-        setIsEditing(false);
-      },
-    },
-  );
+  // const [isDisabled, setIsDisabled] = useState(false);
 
   const handleFocus = (e: React.FocusEvent<HTMLTextAreaElement>) => {
     e.target.select();
@@ -41,7 +22,7 @@ export const PlainTextInput: React.FC<{
   const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
     setIsEditing(false);
     if (text !== e.target.value) {
-      mutate({ [fieldName]: e.target.value, id });
+      mutateActivityDetail({ [fieldName]: e.target.value });
     }
   };
 
@@ -58,7 +39,7 @@ export const PlainTextInput: React.FC<{
         onBlur={handleBlur}
         onFocus={handleFocus}
         onKeyDown={handleKeyDown}
-        disabled={isDisabled}
+        // disabled={isDisabled}
       />
     );
   }

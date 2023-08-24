@@ -1,7 +1,8 @@
 import { PlainTextInput } from "./PlainTextInput";
-import { fetchActivityDetail } from "../api";
+import { fetchActivityDetail, udpateActivity } from "../api";
 import { GearList } from "./GearList";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { DetailedActivity } from "../stravaApi/api";
 
 type ActivityProps = {
   id: number;
@@ -26,20 +27,41 @@ export const Activity: React.FC<ActivityProps> = ({ id }) => {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { mutate: mutateActivityDetail } = useMutation(
+    (activity: Partial<DetailedActivity>) =>
+      udpateActivity({ id, ...activity }),
+    {
+      onSuccess: (data) => {
+        qc.setQueryData(["activityDetail", id], data);
+      },
+    },
+  );
+
   // TODO: is there a better way for defaults?
   const { name = "", description = "", gear = {} } = data || {};
 
   return (
     <div>
       <h1>
-        <PlainTextInput text={name} fieldName="name" id={id} />
+        <PlainTextInput
+          text={name}
+          fieldName="name"
+          mutateActivityDetail={mutateActivityDetail}
+        />
       </h1>
       {isLoading ? (
         "loading..."
       ) : (
-        <PlainTextInput text={description} fieldName="description" id={id} />
+        <PlainTextInput
+          text={description}
+          fieldName="description"
+          mutateActivityDetail={mutateActivityDetail}
+        />
       )}
-      <GearList selectedGearId={gear?.id} />
+      <GearList
+        selectedGearId={gear?.id}
+        mutateActivityDetail={mutateActivityDetail}
+      />
       <hr />
     </div>
   );
