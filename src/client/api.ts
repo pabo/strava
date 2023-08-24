@@ -21,4 +21,14 @@ export async function fetchActivities(): Promise<StravaActivity[]> {
 export async function fetchActivityDetail(id: number): Promise<StravaActivity> {
     return _fetch(`/activities/${id}`);
 }
-  
+
+// TODO: probably doesnt properly throw
+export async function udpateActivity(activity: Partial<StravaActivity>) {
+    return fetch("update_activity", {
+        method: "PUT",
+        headers: {
+        "Content-Type": "application/json",
+        },
+        body: JSON.stringify(activity),
+    }).then(res => res.json());
+}
