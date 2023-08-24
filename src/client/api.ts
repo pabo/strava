@@ -1,8 +1,4 @@
-export type StravaActivity = {
-    id: number;
-    name: string;
-    description: string;
-};
+import { DetailedActivity, SummaryActivity } from "./stravaApi/api";
 
 // generic fetch support for react-query which adds throwing
 async function _fetch(url: string) {
@@ -14,16 +10,16 @@ async function _fetch(url: string) {
     return response.json();
 }
 
-export async function fetchActivities(): Promise<StravaActivity[]> {
+export async function fetchActivities(): Promise<SummaryActivity[]> {
     return _fetch("/last_activities");
 }
   
-export async function fetchActivityDetail(id: number): Promise<StravaActivity> {
+export async function fetchActivityDetail(id: number): Promise<DetailedActivity> {
     return _fetch(`/activities/${id}`);
 }
 
 // TODO: probably doesnt properly throw
-export async function udpateActivity(activity: Partial<StravaActivity>) {
+export async function udpateActivity(activity: Partial<DetailedActivity>) {
     return fetch("update_activity", {
         method: "PUT",
         headers: {

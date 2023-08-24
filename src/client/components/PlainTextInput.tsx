@@ -1,20 +1,22 @@
 import { useState } from "react";
-import { StravaActivity, udpateActivity } from "../api";
-import { useMutation, useQueryClient } from "react-query";
+import { udpateActivity } from "../api";
+import { DetailedActivity } from "../stravaApi/api";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 export const PlainTextInput: React.FC<{
   text: string;
-  fieldName: keyof StravaActivity;
+  fieldName: keyof DetailedActivity;
   id: number;
 }> = ({ id, text, fieldName }) => {
+  console.log("rendering plain text input");
   const [isEditing, setIsEditing] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
 
-  //TODO: cant destructure this or it breaks?
+  // TODO: cant destructure this or it breaks?
   const qc = useQueryClient();
 
   const { mutate } = useMutation(
-    (activity: Partial<StravaActivity>) => {
+    (activity: Partial<DetailedActivity>) => {
       setIsDisabled(true);
       return udpateActivity(activity);
     },
@@ -38,6 +40,7 @@ export const PlainTextInput: React.FC<{
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+    setIsEditing(false);
     if (text !== e.target.value) {
       mutate({ [fieldName]: e.target.value, id });
     }
